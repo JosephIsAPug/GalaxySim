@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37531.7 d17.14
+VisualStudioVersion = 17.14.37531.7
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml test", "sfml test\sfml test.vcxproj", "{19A72DF2-F2C8-4715-A77A-3E474BAC5150}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sfml test", "GalaxySim\sfml test.vcxproj", "{19A72DF2-F2C8-4715-A77A-3E474BAC5150}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

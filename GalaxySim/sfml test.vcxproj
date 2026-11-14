@@ -22,7 +22,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{19a72df2-f2c8-4715-a77a-3e474bac5150}</ProjectGuid>
-    <RootNamespace>sfmltest</RootNamespace>
+    <RootNamespace>GalaxySim</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>GalaxySim</ProjectName>
   </PropertyGroup>
@@ -149,7 +149,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="data.cpp" />
-    <ClCompile Include="grid.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MisDef.cpp" />
     <ClCompile Include="Node.cpp" />
