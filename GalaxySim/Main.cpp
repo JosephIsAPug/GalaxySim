@@ -30,10 +30,11 @@ int main()
     float t = 0.01;
     float totalT = 0;
     float G = 0.000001;
-    int pNum = 10000;
-    int mode = 1;
+    int pNum = 1000;
+    int mode = 2;
 
-    ParticleSystem points = ParticleSystem();
+    ParticleSystem particleSystem = ParticleSystem();
+    ParticleSystem::ParticleGroup allParticles = ParticleSystem::ParticleGroup(&particleSystem);
     std::vector<ParticleSystem*> objects = std::vector<ParticleSystem*>();
 
     FastNoiseLite noise;
@@ -43,12 +44,7 @@ int main()
     noise.SetFractalOctaves(4);
 
     if (mode == 1) {
-        ParticleSystem p1 = ParticleSystem();
-        p1.spawnGalaxy(pNum * 0.4, -0.5, -0.3, 0, 0, 0, 0.06, 0.3);
-        objects.push_back(&p1);
-        ParticleSystem p2 = ParticleSystem();
-        p2.spawnGalaxy(pNum * 0.6, 0.5, 0.2, 0, 0, 0, -0.05, 0.5);
-        objects.push_back(&p2);
+
     }
 
     if (mode == 0) {
@@ -68,7 +64,8 @@ int main()
             float vz = z / powf(l, 0) * 3 + Rnd_Float(-1, 1) * 0;
             float rnd = Rnd_Float(0, (noise.GetNoise(x, y, z) + 1) / 2);
             if (rnd < 0.3) { i--; continue; }
-            points.addParticle(x * 0.1, y * 0.1, z * 0.1, vx, vy, vz);//Rnd_Float(-1, 1), Rnd_Float(-1, 1));
+            ParticleSystem::Particle p(Vector3(x, y, z));
+            allParticles.addNewParticle(p);
         }
     }
     if (mode == 2) {
@@ -91,10 +88,11 @@ int main()
             vx /= speed / newSpeed;
             vy /= speed / newSpeed;
             vz /= speed / newSpeed;
-            points.addParticle(x, y, z, vx, vy, vz);//Rnd_Float(-1, 1), Rnd_Float(-1, 1));
+            ParticleSystem::Particle p(Vector3(x, y, z), Vector3(vx, vy, vz));
+            allParticles.addNewParticle(p);
         }
     }
-    std::cout << points.particles.size() << " Paricles spawned" << std::endl;
+    //std::cout << points.particles.size() << " Paricles spawned" << std::endl;
 
     Engine engine = Engine(&window);
     engine.setOffset(0, 0, 1);
@@ -370,8 +368,9 @@ int main()
         // *** create oct tree with THETA VALUE ***
         OctTree tree = OctTree(-1, -1, -1, 1, 1, 1);
 
-        for (int i = 0; i < points.particles.size(); i++) {
-            tree.AddPoint(OctTree::Point(points.particles[i].x, points.particles[i].y, points.particles[i].z, points.particles[i].mass, i));
+        for (int i = 0; i < allParticles.indies.size(); i++) {
+            ParticleSystem::Particle p = particleSystem.particlePool[allParticles.indies[i]];
+            tree.AddPoint(OctTree::Point(p.pos, 1, i));
         }
         tree.Build();
         //tree.Print();
@@ -379,9 +378,9 @@ int main()
         time_span = t2 - t1;
         timeTotal = time_span;
         t1 = t2;
-        UI.getWindow("Performece")->getElement("numParticlesText")->discription = "Number of Particles: " + std::to_string(points.particles.size());
+        UI.getWindow("Performece")->getElement("numParticlesText")->discription = "Number of Particles: " + std::to_string(allParticles.indies.size());
         if (frame % 10 == 0)
-            std::cout << "Num points: " << points.particles.size() << " Mass: " << tree.nodeList[0].mass;
+            std::cout << "Num points: " << allParticles.indies.size() << " Mass: " << tree.nodeList[0].mass;
         if (frame % 10 == 0)
             std::cout << " Ms | TreeBuild: " << time_span.count();
         UI.getWindow("Performece")->getElement("timeBuildTreeText")->discription = "Time to Build Tree: " + std::to_string((int)time_span.count()) + "ms";
@@ -400,29 +399,27 @@ int main()
         //*
         for (int i = 0; i < tree.pointList.size(); i++) {
             OctTree::Point* point = &tree.pointList[i];
-            data* p = &points.particles[point->index];
-            p->ax = point->fx / p->mass;
-            p->ay = point->fy / p->mass;
-            p->az = point->fz / p->mass;
+            ParticleSystem::Particle* p = &particleSystem.particlePool[allParticles.indies[point->index]];
+            p->acc = point->force / 1; // 1 is mass
 
         }
 
         if (UI.getWindow("SimulationSettings")->getElement("pause")->value == 0) {
-            for (int i = 0; i < points.particles.size(); i++) {
-                points.damp(i, 0.9999);
-                points.updateVel(i, t);
-                points.updatePos(i, universeSize, t);
+            allParticles.UpdateVel(t);
+            allParticles.UpdatePos(t);
+
+            float size = tree.nodeList[0].meanAbsoluteDeviation * 2;
+            
+            for (int i : allParticles.indies) {
+                ParticleSystem::Particle* p = &particleSystem.particlePool[i];
+                p->pos /= size;
+                p->vel /= size;
             }
+            universeSize *= size;
+
             totalT += t;
             t = UI.getWindow("SimulationSettings")->getElement("timestep")->value;
         }
-
-        float b = -0.001;
-        points.Resize(tree.nodeList[0].meanAbsoluteDeviation * 4);
-        universeSize *= tree.nodeList[0].meanAbsoluteDeviation * 4;
-        points.Center(tree.nodeList[0].centerOfMassX * 0.05, tree.nodeList[0].centerOfMassY * 0.05, tree.nodeList[0].centerOfMassZ * 0.05);
-        points.confine(-1 - b, -1 - b, -1 - b, 1 + b, 1 + b, 1 + b, 0.005);
-        points.RemoveAll();
 
 
 
@@ -462,7 +459,7 @@ int main()
             }
         }
         */
-        points.Draw(&engine, UI.getWindow("RenderSettings")->getElement("drawParticlesColorContrast")->value, pointDrawMode);
+        allParticles.Draw(&engine);//, UI.getWindow("RenderSettings")->getElement("drawParticlesColorContrast")->value, pointDrawMode);
         
 
         sf::Vector2 pos = sf::Mouse::getPosition(window);

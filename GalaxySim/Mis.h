@@ -19,6 +19,16 @@ public:
 	float x;
 	float y;
 	float z;
-	Vector3(float ix, float iy, float iz);
+	Vector3(float ix = 0, float iy = 0, float iz = 0);
+	float getLength();
+	void Normalize();
+	Vector3 operator+(const Vector3& other);
+	void operator+=(const Vector3& other);
+	Vector3 operator-(const Vector3& other);
+	void operator-=(const Vector3& other);
+	Vector3 operator*(float fac);
+	void operator*=(float fac);
+	Vector3 operator/(float fac);
+	void operator/=(float fac);
 };
 #endif

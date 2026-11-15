@@ -11,20 +11,16 @@ class OctTree
 public:
 	class Point {
 	public:
-		float x;
-		float y;
-		float z;
+		Vector3 pos;
 
-		float fx = 0;
-		float fy = 0;
-		float fz = 0;
+		Vector3 force;
 
 		float mass = 1;
 
 		int index;
 		int nearestIndex = -1;
 		float nearestDist = 1;
-		Point(float ix, float iy, float iz, float mass=0, int index=0);
+		Point(Vector3 pos, float mass=1, int index=0);
 	};
 	class Node {
 	public:
@@ -41,13 +37,9 @@ public:
 		int depth = -1;
 
 		float mass = 0;
-		float centerOfMassX = 0;
-		float centerOfMassY = 0;
-		float centerOfMassZ = 0;
+		Vector3 centerOfMass;
 		float meanAbsoluteDeviation = 0;
-		float forceX = 0;
-		float forceY = 0;
-		float forceZ = 0;
+		Vector3 force;
 
 		OctTree* tree;
 

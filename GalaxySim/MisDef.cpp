@@ -54,3 +54,44 @@ Vector3::Vector3(float ix, float iy, float iz) {
     y = iy;
     z = iz;
 }
+float Vector3::getLength() {
+    return std::hypot(x, y, z);
+}
+void Vector3::Normalize() {
+    float length = getLength();
+    x /= length;
+    y /= length;
+    z /= length;
+}
+Vector3 Vector3::operator+(const Vector3& other) {
+    return Vector3(x + other.x, y + other.y, z + other.z);
+}
+void Vector3::operator+=(const Vector3& other) {
+    x += other.x;
+    y += other.y;
+    z += other.z;
+}
+Vector3 Vector3::operator-(const Vector3& other) {
+    return Vector3(x - other.x, y - other.y, z - other.z);
+}
+void Vector3::operator-=(const Vector3& other) {
+    x -= other.x;
+    y -= other.y;
+    z -= other.z;
+}
+Vector3 Vector3::operator*(float fac) {
+    return Vector3(x * fac, y * fac, z * fac);
+}
+void Vector3::operator*=(float fac) {
+    x *= fac;
+    y *= fac;
+    z *= fac;
+}
+Vector3 Vector3::operator/(float fac) {
+    return Vector3(x / fac, y / fac, z / fac);
+}
+void Vector3::operator/=(float fac) {
+    x /= fac;
+    y /= fac;
+    z /= fac;
+}

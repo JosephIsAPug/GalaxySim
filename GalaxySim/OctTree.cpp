@@ -48,28 +48,23 @@ void OctTree::Split(int index) {
 
 	node->leaf = false;
 	//*
-	float midX = node->centerOfMassX;
-	float midY = node->centerOfMassY;
-	float midZ = node->centerOfMassZ;/*/
-	float midX = (node->x1 + node->x2) / 2;//
-	float midY = (node->y1 + node->y2) / 2;//
-	float midZ = (node->z1 + node->z2) / 2;//*/
+	Vector3 midpoint = node->centerOfMass;
 
 	for (int i = 0; i < 8; i++)
 		node->childrenIndex[i] = firstBlankNodeIndex + i;
 
-	nodeList[firstBlankNodeIndex + 0].setData(node->depth + 1, node->x1, node->y1, node->z1, midX, midY, midZ);
-	nodeList[firstBlankNodeIndex + 1].setData(node->depth + 1, midX, node->y1, node->z1, node->x2, midY, midZ);
+	nodeList[firstBlankNodeIndex + 0].setData(node->depth + 1, node->x1, node->y1, node->z1, midpoint.x, midpoint.y, midpoint.z);
+	nodeList[firstBlankNodeIndex + 1].setData(node->depth + 1, midpoint.x, node->y1, node->z1, node->x2, midpoint.y, midpoint.z);
 
-	nodeList[firstBlankNodeIndex + 2].setData(node->depth + 1, node->x1, midY, node->z1, midX, node->y2, midZ);
-	nodeList[firstBlankNodeIndex + 3].setData(node->depth + 1, midX, midY, node->z1, node->x2, node->y2, midZ);
+	nodeList[firstBlankNodeIndex + 2].setData(node->depth + 1, node->x1, midpoint.y, node->z1, midpoint.x, node->y2, midpoint.z);
+	nodeList[firstBlankNodeIndex + 3].setData(node->depth + 1, midpoint.x, midpoint.y, node->z1, node->x2, node->y2, midpoint.z);
 
 
-	nodeList[firstBlankNodeIndex + 4].setData(node->depth + 1, node->x1, node->y1, midZ, midX, midY, node->z2);
-	nodeList[firstBlankNodeIndex + 5].setData(node->depth + 1, midX, node->y1, midZ, node->x2, midY, node->z2);
+	nodeList[firstBlankNodeIndex + 4].setData(node->depth + 1, node->x1, node->y1, midpoint.z, midpoint.x, midpoint.y, node->z2);
+	nodeList[firstBlankNodeIndex + 5].setData(node->depth + 1, midpoint.x, node->y1, midpoint.z, node->x2, midpoint.y, node->z2);
 
-	nodeList[firstBlankNodeIndex + 6].setData(node->depth + 1, node->x1, midY, midZ, midX, node->y2, node->z2);
-	nodeList[firstBlankNodeIndex + 7].setData(node->depth + 1, midX, midY, midZ, node->x2, node->y2, node->z2);
+	nodeList[firstBlankNodeIndex + 6].setData(node->depth + 1, node->x1, midpoint.y, midpoint.z, midpoint.x, node->y2, node->z2);
+	nodeList[firstBlankNodeIndex + 7].setData(node->depth + 1, midpoint.x, midpoint.y, midpoint.z, node->x2, node->y2, node->z2);
 	firstBlankNodeIndex += 8;
 
 	node->SortPoints();
@@ -87,6 +82,7 @@ void OctTree::Grav() {
 		}
 	}
 }
+/*
 void OctTree::PointGrav(Point* p, Node* node) {
 	//std::cout << node->depth << " : " << node->pStartIndex << "-" << node->pEndIndex << " : " << (node->pEndIndex == node->pStartIndex) << " | ";
 	if (node->pEndIndex == node->pStartIndex || node->mass == 0)
@@ -145,7 +141,7 @@ void OctTree::PointGrav(Point* p, Node* node) {
 		for (int i = 0; i < std::size(node->childrenIndex); i++)
 			PointGrav(p, &nodeList[node->childrenIndex[i]]);
 	}
-}
+}*/
 void OctTree::Print() {
 	std::cout << "NodePoolSize: " << poolSize << " ActiveNodes: " << firstBlankNodeIndex << std::endl;
 	for (int i = 0; i < firstBlankNodeIndex; i++) {
@@ -162,10 +158,8 @@ void OctTree::Print() {
 		std::cout << std::endl;
 	}
 }
-OctTree::Point::Point(float ix, float iy, float iz, float imass, int iindex) {
-	x = ix;
-	y = iy;
-	z = iz;
+OctTree::Point::Point(Vector3 ipos, float imass, int iindex) {
+	pos = ipos;
 
 	mass = imass;
 
@@ -195,16 +189,16 @@ int OctTree::Node::FindNodeOfPoint(Point* p) {
 
 	if (leaf) { return -1; }
 
-	if (p->x == tree->nodeList[childrenIndex[0]].x2 &&
-		p->y == tree->nodeList[childrenIndex[0]].y2 &&
-		p->y == tree->nodeList[childrenIndex[0]].z2) {
+	if (p->pos.x == tree->nodeList[childrenIndex[0]].x2 &&
+		p->pos.y == tree->nodeList[childrenIndex[0]].y2 &&
+		p->pos.y == tree->nodeList[childrenIndex[0]].z2) {
 		std::cout << "Point at center adding to node 1" << std::endl;
 		return 0;
 	}
-	else if (p->x < tree->nodeList[childrenIndex[0]].x2) {
-		if (p->y < tree->nodeList[childrenIndex[0]].y2) {
+	else if (p->pos.x < tree->nodeList[childrenIndex[0]].x2) {
+		if (p->pos.y < tree->nodeList[childrenIndex[0]].y2) {
 			//top left
-			if (p->z < tree->nodeList[childrenIndex[0]].z2) {
+			if (p->pos.z < tree->nodeList[childrenIndex[0]].z2) {
 				//front top left
 				return 0;
 			}
@@ -217,7 +211,7 @@ int OctTree::Node::FindNodeOfPoint(Point* p) {
 		else
 		{
 			//bot left
-			if (p->z < tree->nodeList[childrenIndex[0]].z2) {
+			if (p->pos.z < tree->nodeList[childrenIndex[0]].z2) {
 				//front bot left
 				return 2;
 			}
@@ -230,9 +224,9 @@ int OctTree::Node::FindNodeOfPoint(Point* p) {
 	}
 	else
 	{
-		if (p->y < tree->nodeList[childrenIndex[0]].y2) {
+		if (p->pos.y < tree->nodeList[childrenIndex[0]].y2) {
 			//top right
-			if (p->z < tree->nodeList[childrenIndex[0]].z2) {
+			if (p->pos.z < tree->nodeList[childrenIndex[0]].z2) {
 				//front top right
 				return 1;
 			}
@@ -245,7 +239,7 @@ int OctTree::Node::FindNodeOfPoint(Point* p) {
 		else
 		{
 			//bot right
-			if (p->z < tree->nodeList[childrenIndex[0]].z2) {
+			if (p->pos.z < tree->nodeList[childrenIndex[0]].z2) {
 				//front bot right
 				return 3;
 			}
@@ -290,23 +284,17 @@ void OctTree::Node::CalcCenterOfMass() {
 	if (pStartIndex == pEndIndex)
 		return;
 	mass = 0;
-	centerOfMassX = 0;
-	centerOfMassY = 0;
-	centerOfMassZ = 0;
+	centerOfMass = Vector3();
 	for (int i = pStartIndex; i < pEndIndex; i++) {
 		Point* p = &tree->pointList[i];
 		mass += p->mass;
-		centerOfMassX += p->x * p->mass; // same masses
-		centerOfMassY += p->y * p->mass;
-		centerOfMassZ += p->z * p->mass;
+		centerOfMass += p->pos * p->mass;
 	}
-	centerOfMassX /= mass;
-	centerOfMassY /= mass;
-	centerOfMassZ /= mass;
+	centerOfMass /= mass;
 	meanAbsoluteDeviation = 0;
 	for (int i = pStartIndex; i < pEndIndex; i++) {
 		Point* p = &tree->pointList[i];
-		float d = std::hypot(centerOfMassX - p->x, centerOfMassY - p->y, centerOfMassZ - p->z);
+		float d = (centerOfMass - p->pos).getLength();
 		meanAbsoluteDeviation += d * p->mass;
 	}
 	//if (depth == 0)
@@ -314,9 +302,9 @@ void OctTree::Node::CalcCenterOfMass() {
 	meanAbsoluteDeviation /= mass;
 }
 bool OctTree::Node::Contains(Point* p) {
-	if (p->x <= x2 && p->x > x1 &&
-		p->y <= y2 && p->y > y1 &&
-		p->z <= z2 && p->z > z1)
+	if (p->pos.x <= x2 && p->pos.x > x1 &&
+		p->pos.y <= y2 && p->pos.y > y1 &&
+		p->pos.z <= z2 && p->pos.z > z1)
 		return true;
 	else
 		return false;
@@ -331,11 +319,9 @@ void OctTree::Node::Grav(std::vector<int> nodeIndexes) {
 		int ind = nodeIndexes[i];
 		Node* node = &tree->nodeList[ind];
 		//std::cout << myIndex << " " << nodeIndexes[i] << std::endl;
-		float dx = node->centerOfMassX - centerOfMassX;
-		float dy = node->centerOfMassY - centerOfMassY;
-		float dz = node->centerOfMassZ - centerOfMassZ;
+		Vector3 dif = node->centerOfMass - centerOfMass;
 
-		float dist = std::hypot(dx, dy, dz);
+		float dist = dif.getLength();
 		if ((ErrorFunction(node, dist) || leaf) && !(node == this)) {
 			NodeToNodeGrav(node);
 		}
@@ -383,70 +369,41 @@ void OctTree::Node::SelfGrav() {
 			
 			Point* p2 = &tree->pointList[i2];
 
-			const float dx = p2->x - p1->x;
-			const float dy = p2->y - p1->y;
-			const float dz = p2->z - p1->z;
+			Vector3 dif = p2->pos - p1->pos;
 
-			const float dist = std::hypot(dx, dy, dz);
+			const float dist = dif.getLength();
 
 			const float force = 2 * p1->mass * p2->mass * tree->G / powf(dist + 0.001, tree->expo);
 
-			p1->fx += dx * force;
-			p1->fy += dy * force;
-			p1->fz += dz * force;
+			p1->force += dif * force;
 
-			p2->fx -= dx * force;
-			p2->fy -= dy * force;
-			p2->fz -= dz * force;
+			p2->force -= dif * force;
 		}
 	}
 }
 void OctTree::Node::NodeToNodeGrav(Node* node) { // recusive function
-	float dx = node->centerOfMassX - centerOfMassX;
-	float dy = node->centerOfMassY - centerOfMassY;
-	float dz = node->centerOfMassZ - centerOfMassZ;
+	Vector3 dif = node->centerOfMass - centerOfMass;
 
-	float dist = std::hypot(dx, dy, dz);
-	float force = mass * node->mass * tree->G / powf(dist, tree->expo);
+	float dist = dif.getLength();
+	float f = mass * node->mass * tree->G / powf(dist, tree->expo);
 
-	forceX += dx * force;
-	forceY += dy * force;
-	forceZ += dz * force;
+	force += dif * f;
 
-	node->forceX -= dx * force;
-	node->forceY -= dy * force;
-	node->forceZ -= dz * force;
-
-	/*
-	if (dist > node->meanAbsoluteDeviation * tree->theta && !(node == this)) {
-		
-	}
-	else if (!node->leaf) {
-		for (int i = 0; i < 8; i++) {
-			NodeToNodeGrav(&tree->nodeList[node->childrenIndex[i]]);
-		}
-	}
-	*/
+	node->force -= dif * f;
 }
 void OctTree::Node::NodeToNodeGravSubDiv(Node* node) { // recusive function
 	if ((node == this)) // handeled in self grav
 		return;
-	float dx = node->centerOfMassX - centerOfMassX;
-	float dy = node->centerOfMassY - centerOfMassY;
-	float dz = node->centerOfMassZ - centerOfMassZ;
+	Vector3 dif = node->centerOfMass - centerOfMass;
 
-	float dist = std::hypot(dx, dy, dz);
+	const float dist = dif.getLength();
 
 	if (ErrorFunction(node, dist)) {
-		float force = mass * node->mass * tree->G / powf(dist, tree->expo);
+		float f = mass * node->mass * tree->G / powf(dist, tree->expo); // prevent same name
 
-		forceX += dx * force;
-		forceY += dy * force;
-		forceZ += dz * force;
+		force += dif * f;
 
-		node->forceX -= dx * force;
-		node->forceY -= dy * force;
-		node->forceZ -= dz * force;
+		node->force -= dif * f;
 	}
 	else if (node->leaf) {
 		NodeToNodeGravAllPoints(node);
@@ -463,21 +420,15 @@ void OctTree::Node::NodeToNodeGravAllPoints(Node* node) { // recusive function
 		for (int i2 = node->pStartIndex; i2 < node->pEndIndex; i2++) {
 			Point* p2 = &tree->pointList[i2];
 
-			const float dx = p2->x - p1->x;
-			const float dy = p2->y - p1->y;
-			const float dz = p2->z - p1->z;
+			Vector3 dif = p2->pos - p1->pos;
 
-			const float dist = std::hypot(dx, dy, dz);
+			const float dist = dif.getLength();
 
 			const float force = p1->mass * p2->mass * tree->G / powf(dist + 0.001, tree->expo);
 
-			p1->fx += dx * force;
-			p1->fy += dy * force;
-			p1->fz += dz * force;
+			p1->force += dif * force;
 
-			p2->fx -= dx * force;
-			p2->fy -= dy * force;
-			p2->fz -= dz * force;
+			p2->force -= dif * force;
 		}
 	}
 }
@@ -486,10 +437,7 @@ void OctTree::Node::PropagateForce() {
 		return;
 	for (int i = 0; i < 8; i++) {
 		Node* node = &tree->nodeList[childrenIndex[i]];
-
-		node->forceX += forceX * node->mass / mass;
-		node->forceY += forceY * node->mass / mass;
-		node->forceZ += forceZ * node->mass / mass;
+		node->force += force * node->mass / mass;
 	}
 	for (int i = 0; i < 8; i++) {
 		tree->nodeList[childrenIndex[i]].PropagateForce();
@@ -498,12 +446,10 @@ void OctTree::Node::PropagateForce() {
 void OctTree::Node::ApplyForce() {
 	for (int i = pStartIndex; i < pEndIndex; i++) {
 		Point* p = &tree->pointList[i];
-
-		p->fx += forceX / mass * p->mass;
-		p->fy += forceY / mass * p->mass;
-		p->fz += forceZ / mass * p->mass;
+		p->force += force / mass * p->mass;
 	}
 }
+/*
 void OctTree::Node::Debug(Engine* engine, float offsetX, float offsetY, float offsetZ, float a) {
 	for (int i = 0; i < tree->nodeList.size(); i++) {
 		Node* node = &tree->nodeList[i];
@@ -517,3 +463,4 @@ void OctTree::Node::Debug(Engine* engine, float offsetX, float offsetY, float of
 		}
 	}
 }
+*/
