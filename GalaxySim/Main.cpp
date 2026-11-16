@@ -29,9 +29,9 @@ int main()
     const float timeMult = 0.1;
     float t = 0.01;
     float totalT = 0;
-    float G = 0.000001;
-    int pNum = 1000;
-    int mode = 2;
+    float G = 0.0000001;
+    int pNum = 10000;
+    int mode = 1;
 
     ParticleSystem particleSystem = ParticleSystem();
     ParticleSystem::ParticleGroup allParticles = ParticleSystem::ParticleGroup(&particleSystem);
@@ -44,11 +44,42 @@ int main()
     noise.SetFractalOctaves(4);
 
     if (mode == 1) {
-
+        for (int i = 0; i < pNum * 0.5; i++) {
+            float z = Rnd_Float(-1, 1);
+            float r = sqrt(1 - z * z);
+            float a = Rnd_Float(0, 2 * 3.1415);
+            float x = cos(a) * r;
+            float y = sin(a) * r;
+            float l = powf(Rnd_Float(0.01, 1), 1.0 / 3.0);
+            x *= l * 0.95;
+            y *= l * 0.95;
+            z *= l * 0.95;
+            float vx = z / l * 0.01 + Rnd_Float(-1, 1) * 0;
+            float vy = 0 + Rnd_Float(-1, 1) * 0;
+            float vz = -x / l * 0.01 + Rnd_Float(-1, 1) * 0;
+            ParticleSystem::Particle p(Vector3(x - 5, y * 0.25, z) * 0.2, Vector3(vx, vy, vz), 1000.0 / pNum);
+            allParticles.addNewParticle(p);
+        }
+        for (int i = 0; i < pNum * 0.5; i++) {
+            float z = Rnd_Float(-1, 1);
+            float r = sqrt(1 - z * z);
+            float a = Rnd_Float(0, 2 * 3.1415);
+            float x = cos(a) * r;
+            float y = sin(a) * r;
+            float l = powf(Rnd_Float(0.01, 1), 1.0 / 3.0);
+            x *= l * 0.95;
+            y *= l * 0.95;
+            z *= l * 0.95;
+            float vx = z / l * 0.01 + Rnd_Float(-1, 1) * 0;
+            float vy = 0 + Rnd_Float(-1, 1) * 0;
+            float vz = -x / l * 0.01 + Rnd_Float(-1, 1) * 0;
+            ParticleSystem::Particle p(Vector3(x + 5, y * 0.25, z) * 0.2, Vector3(vx, vy, vz), 1000.0 / pNum);
+            allParticles.addNewParticle(p);
+        }
     }
 
     if (mode == 0) {
-        G *= 50;
+        G *= 20;
         for (int i = 0; i < pNum; i++) {
             float z = Rnd_Float(-1, 1);
             float r = sqrt(1 - z * z);
@@ -59,12 +90,12 @@ int main()
             x *= l * 0.95;
             y *= l * 0.95;
             z *= l * 0.95;
-            float vx = x / powf(l, 0) * 3 + Rnd_Float(-1, 1) * 0;
-            float vy = y / powf(l, 0) * 3 + Rnd_Float(-1, 1) * 0;
-            float vz = z / powf(l, 0) * 3 + Rnd_Float(-1, 1) * 0;
+            float vx = x / powf(l, 0) * 0.1 + Rnd_Float(-1, 1) * 0;
+            float vy = y / powf(l, 0) * 0.1 + Rnd_Float(-1, 1) * 0;
+            float vz = z / powf(l, 0) * 0.1 + Rnd_Float(-1, 1) * 0;
             float rnd = Rnd_Float(0, (noise.GetNoise(x, y, z) + 1) / 2);
             if (rnd < 0.3) { i--; continue; }
-            ParticleSystem::Particle p(Vector3(x, y, z));
+            ParticleSystem::Particle p(Vector3(x, y, z), Vector3(vx, vy, vz), 1000.0 / pNum);
             allParticles.addNewParticle(p);
         }
     }
@@ -84,11 +115,11 @@ int main()
             float vy = Rnd_Float(-1, 1);
             float vz = Rnd_Float(-1, 1);
             float speed = std::hypot(vx, vy, vz);
-            float newSpeed = Rnd_Float(0, 1) * 0.1;
+            float newSpeed = Rnd_Float(0, 1) * 0.01;
             vx /= speed / newSpeed;
             vy /= speed / newSpeed;
             vz /= speed / newSpeed;
-            ParticleSystem::Particle p(Vector3(x, y, z), Vector3(vx, vy, vz));
+            ParticleSystem::Particle p(Vector3(x, y, z), Vector3(vx, vy, vz), 1000.0 / pNum);
             allParticles.addNewParticle(p);
         }
     }
@@ -352,11 +383,11 @@ int main()
             UI.Event(sf::Event::Resized(window.getSize()));
         }
 
-        if (mode == 0) {
+        if (mode == 0 && UI.getWindow("SimulationSettings")->getElement("pause")->value == 0) {
             //universeSize += 0.005 * t;
             universeSize *= powf(2 - universeSize * 0.0001, t);
             //t = fminf(universeSize * 10, 1000);
-            t = (float)(frame * frame) / (frame * frame + 100000000) * log(universeSize) + 0.0001;
+            //t = (float)(frame * frame) / (frame * frame + 100000000) * log(universeSize) + 0.0001;
         }
 
         std::chrono::duration<double, std::milli> timeTotal;
@@ -370,7 +401,7 @@ int main()
 
         for (int i = 0; i < allParticles.indies.size(); i++) {
             ParticleSystem::Particle p = particleSystem.particlePool[allParticles.indies[i]];
-            tree.AddPoint(OctTree::Point(p.pos, 1, i));
+            tree.AddPoint(OctTree::Point(p.pos, p.mass, i));
         }
         tree.Build();
         //tree.Print();
@@ -400,20 +431,19 @@ int main()
         for (int i = 0; i < tree.pointList.size(); i++) {
             OctTree::Point* point = &tree.pointList[i];
             ParticleSystem::Particle* p = &particleSystem.particlePool[allParticles.indies[point->index]];
-            p->acc = point->force / 1; // 1 is mass
+            p->acc = point->force / p->mass;
 
         }
 
         if (UI.getWindow("SimulationSettings")->getElement("pause")->value == 0) {
             allParticles.UpdateVel(t);
-            allParticles.UpdatePos(t);
+            allParticles.UpdatePos(t, universeSize);
 
             float size = tree.nodeList[0].meanAbsoluteDeviation * 2;
             
             for (int i : allParticles.indies) {
                 ParticleSystem::Particle* p = &particleSystem.particlePool[i];
                 p->pos /= size;
-                p->vel /= size;
             }
             universeSize *= size;
 
@@ -459,7 +489,7 @@ int main()
             }
         }
         */
-        allParticles.Draw(&engine);//, UI.getWindow("RenderSettings")->getElement("drawParticlesColorContrast")->value, pointDrawMode);
+        allParticles.Draw(&engine, UI.getWindow("RenderSettings")->getElement("drawParticlesColorContrast")->value, pointDrawMode);
         
 
         sf::Vector2 pos = sf::Mouse::getPosition(window);

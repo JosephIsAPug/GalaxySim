@@ -6,6 +6,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "SFML functions.h"
+#include "Mis.h"
 class UIManager {
 public:
 	class Window

@@ -83,10 +83,12 @@ bool UIManager::Window::Event(std::optional<sf::Event> event) {
 
 	if (const auto resized = event->getIf<sf::Event::Resized>()) {
 		//std::cout << resized->size.x - manager->windowSize.x;
-		pos.x *= (float)resized->size.x / (float)manager->windowSize.x;
-		pos.y *= (float)resized->size.y / (float)manager->windowSize.y;
-		size.x *= (float)resized->size.x / (float)manager->windowSize.x;
-		size.y *= (float)resized->size.y / (float)manager->windowSize.y;
+		if (pos.x > manager->windowSize.x / 2) {
+			pos.x += resized->size.x - manager->windowSize.x;
+		}
+		if (pos.y > manager->windowSize.y / 2) {
+			pos.y += resized->size.y - manager->windowSize.y;
+		}
 		Bound();
 	}
 

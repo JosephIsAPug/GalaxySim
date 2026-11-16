@@ -16,7 +16,8 @@ public:
 		Vector3 pos;
 		Vector3 vel;
 		Vector3 acc;
-		Particle(Vector3 pos = Vector3(), Vector3 vel = Vector3());
+		float mass;
+		Particle(Vector3 pos = Vector3(), Vector3 vel = Vector3(), float mass = 1);
 	};
 	class ParticleGroup {
 	public:
@@ -25,10 +26,10 @@ public:
 		ParticleGroup(ParticleSystem* system, std::vector<int> indies = std::vector<int>());
 		void addNewParticle(Particle p);
 		void addIndex(int i);
-		void UpdatePos(float time);
+		void UpdatePos(float time, float domainSize);
 		void UpdateVel(float time);
 		void Force(float force);
-		void Draw(Engine* e);
+		void Draw(Engine* e, float contrast, int drawMode);
 	};
 
 	std::vector<Particle> particlePool;
